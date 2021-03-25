@@ -3,8 +3,9 @@ title: "Polling error and predictability"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
 One way of thinking about polling error is to think of it as being composed of an average component and a unique component that is specific to every polling firm. Polling error is in some sense obviously undesirable and the general consensus is -- one might say with some further qualifiers to be imagined -- that you can neither predict polling error nor where the individual polling houses will fall. Further -- and this appears to be more generally true than the preceding statement -- polling firm specific errors are generally modeled as random effects that are the same for each state. That is expecting past on past data or modeling based on current data, we would say that polling firm A has a 2.5% error favoring the Democratic candidate in all states from Alaska to Wyoming (or some more sensible sorting like DC to Wyoming).
@@ -26,6 +27,7 @@ As the final outcomes are observed in each case, we can fit
 $$
 y_i \sim \text{Binomial}(n_i, \alpha_{s[i]} + \xi_i)
 $$
+
 with $n_i$ being two-party respondents of the poll, $y_i$ Democratic respondents, $\alpha_{s}$ the election outcome in state $s$ in terms of the Democratic voteshare and $\xi_i$ the polling error of that poll (favoring the Democratic candidate). As a small intermission, I really really dislike seeing people ignore sampling variation in their evaluation of how pollster do. Some statements you just can't make and making them conditional on ignoring that variation shouldn't be anyone's first choice.
 
 We can split up $\xi_i$ into multiple components and here I include a national, regional, division, and state component and all their interactions with the election year. Lots of parameters. The end result is that observed variation is split up between all these levels. Which gets you some nice plots and some that are barely legible. Yet, beyond that we can also add a polling house - year - state component. What this term ultimately does is to capture polling house specific deviations from the observed polling error average at the state level in each year. To an extent this term is equivalent to the polling house intercepts in our forecasting model after adjusting for the average error.
@@ -129,6 +131,27 @@ generated quantities {
       xi_new;
 }
 ```
+
+### Inference
+
+So six elections and lots of polling houses means that showing everything is not really possible so I limit the presentation by aggregating and focusing on pollsters for which more than one year in the same state is available.
+
+One of the first things I was curious about was given the average error, how much variation is there across years for pollster-state combinations? For the graph below the way to read this is that a term centered at 0 implies that the pollster is average in its error insofar as it is representative of how bad all pollsters do on average. If terms are consistently above or below 0, the pollster generally favors either the Democratic (above) or Republican (below) candidate beyond any average error. If you switch between above and below you are either frequently outperforming or underperforming the average. 
+
+```{r p01, echo = FALSE, cache = TRUE, results = TRUE}
+zeta_hat <- read_rds("dta/saved_output_m1_all_years_zeta_hat_sum.Rds")
+ggplot(zeta_hat, aes(x = year, y = q50)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = q25, ymax = q75), size = 0.75, width = 0) +
+  geom_errorbar(aes(ymin = q10, ymax = q90), size = 0.5, width = 0) +
+  geom_point() +
+  geom_hline(aes(yintercept = 0), linetype = 2, color = "red") +
+  facet_wrap(pollster + state ~.) +
+  theme_light() +
+  labs(y = "Polling error (%, favoring Democrats)") +
+  theme(axis.title.x = element_blank())
+```
+
 
 
 

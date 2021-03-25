@@ -44,6 +44,7 @@ have made up their mind.
 As the final outcomes are observed in each case, we can fit
 
 *y*<sub>*i*</sub> ∼ Binomial(*n*<sub>*i*</sub>, *α*<sub>*s*\[*i*\]</sub> + *ξ*<sub>*i*</sub>)
+
 with *n*<sub>*i*</sub> being two-party respondents of the poll,
 *y*<sub>*i*</sub> Democratic respondents, *α*<sub>*s*</sub> the election
 outcome in state *s* in terms of the Democratic voteshare and
@@ -168,3 +169,22 @@ generated quantities {
       xi_new;
 }
 ```
+
+### Inference
+
+So six elections and lots of polling houses means that showing
+everything is not really possible so I limit the presentation by
+aggregating and focusing on pollsters for which more than one year in
+the same state is available.
+
+One of the first things I was curious about was given the average error,
+how much variation is there across years for pollster-state
+combinations? For the graph below the way to read this is that a term
+centered at 0 implies that the pollster is average in its error insofar
+as it is representative of how bad all pollsters do on average. If terms
+are consistently above or below 0, the pollster generally favors either
+the Democratic (above) or Republican (below) candidate beyond any
+average error. If you switch between above and below you are either
+frequently outperforming or underperforming the average.
+
+![](README_files/figure-gfm/p01-1.png)<!-- -->

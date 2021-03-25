@@ -3,9 +3,9 @@ library(cmdstanr)
 library(boot)
 ## Data
 # Region indicators
-us_regions <- read_csv("data/us_input/polling_error/us census bureau regions and divisions.csv")
+us_regions <- read_csv("dta/us census bureau regions and divisions.csv")
 # Polls
-df <- read_csv("data/us_input/polling_error/polls_pres_dataset_00_20.csv")
+df <- read_csv("dta/polls_pres_dataset_00_20.csv")
 state_abb <- df %>%
   pull(state) %>%
   unique() %>%
@@ -37,7 +37,7 @@ df <- df %>%
   group_by(pollName, t, s) %>%
   mutate(p = cur_group_id()) %>%
   ungroup()
-results <- read_csv("data/us_background/potus_results_76_20.csv") %>%
+results <- read_csv("dta/potus_results_76_20.csv") %>%
   left_join(df %>% distinct(state, State), by = c("state_po" = "state"))
 states_2020_ordered <- results %>%
   filter(year == 2020) %>%
@@ -61,8 +61,7 @@ turnout <- read_csv("data/us_background/potus_turnout.csv") %>%
                             "state_po" = "state_po"))
 ###############################################################################
 ## Model for scales
-m <- file.path("code/stan/models/models_polls/components/polling_error/polling_error_polling_house",
-               "polling_error_polling_house_additive_ar.stan")
+m <- file.path("src/stan/m01_all_years.stan")
 mod <- cmdstan_model(m)
 
 rt_index <- df %>% distinct(r, t, rt) %>% arrange(r, t)
@@ -99,8 +98,8 @@ fit <- mod$sample(
   seed = 123,
   chains = 4,
   parallel_chains = 4,
-  iter_sampling = 2000,
-  iter_warmup = 1000,
+  iter_sampling = 1000,
+  iter_warmup = 3000,
   refresh = 500
 )
-fit$save_object(file = "data/us_input/polling_error/polling_error_polling_house.RDS")
+fit$save_object(file = "fit/saved_fit_m1_all_years.RDS")
