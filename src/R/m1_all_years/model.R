@@ -53,12 +53,6 @@ states_2020_ordered_lower <- results_2020 %>% filter(!is.na(State)) %>%
   arrange(finalTwoPartyVSDemocratic) %>% pull(State)
 state_abb_full <- results_2020 %>%
   pull(State)
-turnout <- read_csv("data/us_background/potus_turnout.csv") %>%
-  mutate(s = match(state_po, state_abb),
-         t = (year - 2000)/4 + 1) %>%
-  left_join(results, by = c("year" = "year",
-                            "state_full_lower" = "State",
-                            "state_po" = "state_po"))
 ###############################################################################
 ## Model for scales
 m <- file.path("src/stan/m01_all_years.stan")

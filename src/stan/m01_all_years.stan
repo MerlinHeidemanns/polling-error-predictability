@@ -31,7 +31,7 @@ parameters {
   vector[D * (T - 1)] raw_delta_eta;
   vector<lower = 0.01>[4] sigma;
   vector[S *  (T - 1)] raw_xi;
-  real rho[4];
+  real<lower = -1, upper = 1> rho[4];
   vector[P] raw_zeta;
   real<lower = 0> sigma_zeta;
 }
@@ -60,7 +60,7 @@ transformed parameters {
 }
 
 model {
-  rho ~ normal(1, 0.25);
+  rho ~ normal(0.5, 1);
   sigma ~ normal(0, 0.1);
   alpha ~ normal(0, sigma[4]);
   beta ~ normal(0, sigma[1]);

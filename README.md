@@ -188,3 +188,28 @@ average error. If you switch between above and below you are either
 frequently outperforming or underperforming the average.
 
 ![](README_files/figure-gfm/p01-1.png)<!-- -->
+
+One of the more interesting things coming from this graph is probably
+that there are few clear trends once one adjusts for the state average.
+
+One related question is whether from state to state within a given year,
+pollsters make similar errors. Given the graphs below that plot
+deviations from the average error as polling house effects, for at least
+some polling houses it is probably not unreasonable to say that they
+don’t while for others it is less clear (such as YouGov in 2008).
+
+![](README_files/figure-gfm/p02-1.png)<!-- -->
+
+### Predictability
+
+For the prediction of the average error, I use an AR1 process that
+predicts the error in the next general election as some function of the
+previous error with the error components being the national, regional,
+division, and state level.
+
+Performance is generally not terrible when we compare predicted average
+error against a polling error from a full model with all elections and
+no autoregressive process though the approach does not do well in 2016
+and less well in 2012.
+
+![](README_files/figure-gfm/p03-1.png)<!-- -->![](README_files/figure-gfm/p03-2.png)<!-- -->![](README_files/figure-gfm/p03-3.png)<!-- -->

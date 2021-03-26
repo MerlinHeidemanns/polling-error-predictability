@@ -93,7 +93,7 @@ zeta_hat <- fit$draws("zeta") %>%
   group_by(pollster, state) %>%
   filter(n() > 4) %>%
   mutate(year = factor(year - 2000, levels = seq(0, 20, 4)))
-write_rds(zeta_hat, file = "dta/")
+write_rds(zeta_hat, file = "dta/saved_output_m1_all_years_zeta_hat_sum.Rds")
 ggplot(zeta_hat, aes(x = year, y = q50)) +
   geom_point() +
   geom_errorbar(aes(ymin = q25, ymax = q75), size = 0.75, width = 0) +
@@ -106,9 +106,11 @@ ggplot(zeta_hat, aes(x = year, y = q50)) +
   theme(axis.title.x = element_blank())
 
 
+## Deviations from average by state
 zeta_hat_draws <- fit$draws("zeta") %>%
   posterior::as_draws_df() %>%
-  pivot_longer(everything(),
+  mutate(i = 1:n()) %>%
+  pivot_longer(c(-i),
                names_to = "p",
                values_to = "draw",
                names_pattern = "(\\d+)") %>%
@@ -118,13 +120,29 @@ zeta_hat_draws <- fit$draws("zeta") %>%
          year = index_t[p],
          state = index_s[p]) %>%
   filter(!is.na(p)) %>%
-  group_by(pollster, state) %>%
-  filter(n() > 4 * 8000)
-
-ggplot(zeta_hat_draws, aes(x = draw, fill = as.factor(year))) +
-  geom_histogram(position = "identity", alpha = 0.3, bins = 100) +
-  facet_wrap(pollster + state ~.) +
-  theme_light()
+  group_by(pollster, year, state) %>%
+  summarize(
+    q50 = quantile(draw, 0.5),
+    q25 = quantile(draw, 0.25),
+    q75 = quantile(draw, 0.75),
+    q10 = quantile(draw, 0.10),
+    q90 = quantile(draw, 0.90)
+  ) %>%
+  group_by(pollster, year) %>%
+  filter(n() >= 40) %>%
+  mutate(state = factor(state, levels = states_2020_ordered),
+         pollster_year = paste(pollster, as.character(year), sep = "-"))
+write_rds(zeta_hat_draws, file = "dta/saved_output_m1_all_years_zeta_hat_pollster_year_state_sum.Rds")
+ggplot(zeta_hat_draws, aes(x = state, y = q50)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = q25, ymax = q75), size = 0.75, width = 0) +
+  geom_errorbar(aes(ymin = q10, ymax = q90), size = 0.5, width = 0) +
+  facet_wrap(pollster_year~.) +
+  theme_light() +
+  coord_flip() +
+  labs(y = "Polling error (%, favoring Democrats)",
+       caption = "Median, 50, 80") +
+  theme(axis.title.y = element_blank())
 
 
 

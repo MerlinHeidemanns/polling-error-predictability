@@ -152,7 +152,65 @@ ggplot(zeta_hat, aes(x = year, y = q50)) +
   theme(axis.title.x = element_blank())
 ```
 
+One of the more interesting things coming from this graph is probably that there are few clear trends once one adjusts for the state average.
 
+One related question is whether from state to state within a given year, pollsters make similar errors. Given the graphs below that plot deviations from the average error as polling house effects, for at least some polling houses it is probably not unreasonable to say that they don't while for others it is less clear (such as YouGov in 2008).
+
+```{r p02, echo = FALSE, cache = TRUE, results = TRUE}
+zeta_hat_draws <- read_rds("dta/saved_output_m1_all_years_zeta_hat_pollster_year_state_sum.Rds")
+ggplot(zeta_hat_draws, aes(x = state, y = q50)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = q25, ymax = q75), size = 0.75, width = 0) +
+  geom_errorbar(aes(ymin = q10, ymax = q90), size = 0.5, width = 0) +
+  facet_wrap(pollster_year~.) +
+  theme_light() +
+  coord_flip() +
+  labs(y = "Polling error (%, favoring Democrats)",
+       caption = "Median, 50, 80") +
+  theme(axis.title.y = element_blank())
+```
+
+### Predictability
+
+For the prediction of the average error, I use an AR1 process that predicts the error in the next general election as some function of the previous error with the error components being the national, regional, division, and state level.
+
+Performance is generally not terrible when we compare predicted average error against a polling error from a full model with all elections and no autoregressive process though the approach does not do well in 2016 and less well in 2012.
+
+```{r p03, echo = FALSE, results = TRUE, cache = TRUE, warning = FALSE, message=FALSE}
+full_est <- read_rds(file = "dta/saved_output_m01_prediction.Rds")
+
+s_subset <- sample(full_est$s %>% unique(), 30)
+plt <- ggplot(full_est %>% filter(s %in% s_subset, draw <= 500),
+              aes(x = full_dist, y = val, color = as.factor(t))) +
+  geom_point(size = 0.3, alpha = 0.3) +
+  geom_abline(aes(intercept = 0, slope = 1), size = 0.5) +
+  facet_wrap(s~.) +
+  theme_light() +
+  labs(x = "Full model",
+       y = "Loo prediction")
+
+
+ggplot(full_est,
+              aes(x = full_dist - val)) +
+  geom_histogram(size = 0.5, bins = 100) +
+  geom_vline(aes(xintercept = 0), size = 0.5) +
+  facet_grid(t~.) +
+  theme_light() +
+  labs(x = "Full estimate - out of sample prediction from AR1 model",
+       caption = "Positive: Underestimate
+                  Negative: Overestimate")
+
+
+full_est %>%
+  group_by(s, t) %>%
+  summarize(p_bigger = mean(full_dist > val)) %>%
+  ggplot(aes(x = as.factor(t), y = p_bigger)) +
+    geom_violin() +
+    theme(axis.title.x = element_blank()) + 
+    theme_light() + 
+    labs(y = "P(true error > predicted error",
+         caption = "0.5 is ideal.")
+```
 
 
 
